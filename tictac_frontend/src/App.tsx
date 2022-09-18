@@ -6,7 +6,7 @@ import Homepage from './pages/Homepage'
 import Gamepage from './pages/Gamepage'
 import socketIO from 'socket.io-client';
 
-const socket = socketIO('http://localhost:4000');
+const socket = socketIO('http://192.168.0.116:4000');
 
 function App() {
   const [count, setCount] = useState(0)

@@ -28,6 +28,22 @@ const Activeusers = ({socket}:Props) => {
     })
   }, [socket])
 
+  useEffect(() => {
+    var requestOptions:RequestInit = {
+      method: 'GET',
+      redirect: 'follow'
+    };
+    
+    fetch("http://localhost:4000/api/getActiveUsers", requestOptions)
+      .then(response => response.json())
+      .then((result:gameData) =>{
+        setgameData(result);
+        setlistOfUsers(result.listOfConnection);
+      })
+      .catch(error => console.log('error', error));
+  }, [])
+  
+
   const handleChange=(gameId:string)=>{
     navigate('/game',{state:{gameId}});
   }

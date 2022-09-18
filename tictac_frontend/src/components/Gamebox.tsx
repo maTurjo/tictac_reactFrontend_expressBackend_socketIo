@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Socket } from "socket.io-client";
 
@@ -23,6 +23,7 @@ const Gamebox = ({ socket }: props) => {
     [],
   ]);
   const [playerOneTurn, setplayerOneTurn] = useState<boolean>(true);
+  const player2Name=useRef<HTMLInputElement>(null);
 
   const makeMove = async (position1: number, position2: number) => {
     console.log("made move invoked");
@@ -60,18 +61,34 @@ const Gamebox = ({ socket }: props) => {
     });
   }, [socket]);
 
-  useEffect(() => {
-    if (location.state?.gameId) {
-      socket.emit("joinGame", { gameId: location.state.gameId });
-    }
-  }, []);
+  const joinGame=()=>{
+    let player2_Name=player2Name.current?.value;
+    let gameId=location.state.gameId;
+    if(player2_Name=="") return;
+    console.log(player2_Name);
+    socket.emit("joinGame",{ gameId,player2Name:player2_Name});
+    return;
+  }
 
+  if(location.state?.gameId && gameData?.player2.userName ==undefined ){
+    return(
+      <div>
+      <input ref={player2Name} className="border" type="text" placeholder="Set your name" />
+      <button  onClick={joinGame} className="bg-green-500 px-2 py-1 cursor-pointer rounded-lg">ENTER</button>
+      </div>
+    )
+  }
   return (
     <div>
-      <div>
-        <h1>player 1 name: {gameData?.player1?.userName}</h1>
-        <h1>player 2 name: {gameData?.player2?.userName}</h1>
-      </div>
+      {
+        [1].map(()=>{
+          if(gameData)return(<div>
+            <h1 className={gameData?.turn==gameData?.player1.userId ? "border bg-green-800 text-white":""}>player 1 name: {gameData?.player1?.userName}</h1>
+            <h1 className={gameData?.turn==gameData?.player2.userId ? "border bg-green-800 text-white":""}>player 2 name: {gameData?.player2?.userName}</h1>
+          </div>)
+          else return (<div>waiting for opponent</div>)
+        })
+      }
       <div className="w-[300px] h-[300px]">
         <div className="border-b h-[100px] flex items-end">
           <div
