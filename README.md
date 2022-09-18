@@ -4,7 +4,7 @@ A node backend and React frontend multiplayer tic-tac-toe game using socket conn
 ## Instruction for running the app as a developer
 
 ### Spin up the backend server from the directory "tictac_backend" using command
-  `nodemon app.js`
+  `npm run start`
   
 ### Launch the react app from "tictac_frontend" directory using command
 
