@@ -33,17 +33,17 @@ const TicTacBox = (props:props) => {
         }
       };
   return (
-    <div>
-         <div className="w-[300px] h-[300px]">
-        <div className="border-b h-[100px] flex items-end">
+    <div className='flex justify-center mt-5'>
+         <div className="w-[300px] h-[300px] text-7xl">
+        <div className=" border-b h-[100px] flex items-end">
           <div
-            className="w-[100px] h-[100%]  flex items-center justify-center border-r "
+            className="w-[100px] h-[100%]  flex items-center justify-center  border-r "
             onClick={() => makeMove(0, 0)}
           >
             {props.gameData.gameMatrix[0][0]}
           </div>
           <div
-            className="w-[100px] h-[100%]  flex items-center justify-center border-r"
+            className="w-[100px] h-[100%]  flex items-center justify-center  border-r"
             onClick={() => makeMove(0, 1)}
           >
             {props.gameData.gameMatrix[0][1]}
@@ -57,13 +57,13 @@ const TicTacBox = (props:props) => {
         </div>
         <div className="h-[100px] flex">
           <div
-            className="w-[100px] h-[100%]  flex items-center justify-center border-r "
+            className="w-[100px] h-[100%]  flex items-center justify-center  border-r "
             onClick={() => makeMove(1, 0)}
           >
             {props.gameData.gameMatrix[1][0]}
           </div>
           <div
-            className="w-[100px] h-[100%]  flex items-center justify-center border-r"
+            className="w-[100px] h-[100%]  flex items-center justify-center  border-r"
             onClick={() => makeMove(1, 1)}
           >
             {props.gameData.gameMatrix[1][1]}
@@ -75,15 +75,15 @@ const TicTacBox = (props:props) => {
             {props.gameData.gameMatrix[1][2]}
           </div>
         </div>
-        <div className="border-t h-[100px] flex">
+        <div className=" border-t h-[100px] flex">
           <div
-            className="w-[100px] h-[100%]  flex items-center justify-center border-r "
+            className="w-[100px] h-[100%]  flex items-center justify-center  border-r "
             onClick={() => makeMove(2, 0)}
           >
             {props.gameData.gameMatrix[2][0]}
           </div>
           <div
-            className="w-[100px] h-[100%]  flex items-center justify-center border-r"
+            className="w-[100px] h-[100%]  flex items-center justify-center  border-r"
             onClick={() => makeMove(2, 1)}
           >
             {props.gameData.gameMatrix[2][1]}

@@ -4,13 +4,10 @@ import { Socket } from "socket.io-client";
 import ScoreBoard from "./ScoreBoard";
 import TicTacBox from "./TicTacBox";
 import TurnTable from "./TurnTable";
+import {gameData} from "../model/dataModel"
 
 interface props {
   socket: Socket;
-}
-interface player{
-  userId:string,
-  userName:string
 }
 
 
@@ -65,13 +62,19 @@ const Gamebox = ({ socket }: props) => {
         ()=>{
           if(gameData){
             let winner=gameData?.winner;
-            if(winner)
-          return(
-          <div>winner is {gameData?.winner?.userName}</div>
-          )}
+            if(winner && winner.userId==socket.id)
+            return(
+              <div className="text-5xl text-green-500 font-bold py-5">You Won !</div>
+              )
+              else if(winner && winner.userId!=socket.id)
+              return(
+               <div className="text-5xl text-red-500 font-bold py-5">You Lost !</div>
+             )
+        
+        }
           }
         )}
-      <div className="text-start"><button onClick={clearGame} className="bg-red-600 px-2 py-1 text-white rounded-lg">Reset Game</button></div>
+      <div className="text-center"><button onClick={clearGame} className="bg-red-600 px-2 py-1 text-white rounded-lg">Reset Game</button></div>
     </div>
   );
 };
