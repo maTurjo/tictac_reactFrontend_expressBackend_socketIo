@@ -12,6 +12,9 @@ interface gameData {
   gameid: string;
   turn: string;
   gameMatrix: Array<Array<string>>;
+  winner:{ userId: string; userName: string }
+  player1WinCount:number,
+  player2WinCount:number
 }
 const Gamebox = ({ socket }: props) => {
   const location = useLocation();
@@ -58,6 +61,7 @@ const Gamebox = ({ socket }: props) => {
       setgameData(updatedData);
       setgameMatrix(updatedData.gameMatrix);
       console.log(updatedData);
+      
     });
   }, [socket]);
 
@@ -82,9 +86,15 @@ const Gamebox = ({ socket }: props) => {
     <div>
       {
         [1].map(()=>{
-          if(gameData)return(<div>
-            <h1 className={gameData?.turn==gameData?.player1.userId ? "border bg-green-800 text-white":""}>player 1 name: {gameData?.player1?.userName}</h1>
+          if(gameData)return(<div className="flex justify-center items-center">
+            <div className="px-5">
+            <h1 className={gameData?.turn==gameData?.player1.userId ? "border bg-green-800 text-white":""}>player 1 name: {gameData?.player1?.userName} </h1>
             <h1 className={gameData?.turn==gameData?.player2.userId ? "border bg-green-800 text-white":""}>player 2 name: {gameData?.player2?.userName}</h1>
+            </div>
+            <div>
+              <h2 className="text-red-500 font-bold text-2xl">-{gameData.player1WinCount}</h2>
+              <h2 className="text-red-500 font-bold text-2xl">-{gameData.player2WinCount}</h2>
+            </div>
           </div>)
           else return (<div>waiting for opponent</div>)
         })
@@ -151,6 +161,16 @@ const Gamebox = ({ socket }: props) => {
           </div>
         </div>
       </div>
+      {[0].map(
+        ()=>{
+          if(gameData){
+            let winner=gameData?.winner;
+            if(winner)
+          return(
+          <div>winner is {gameData?.winner?.userName}</div>
+          )}
+          }
+        )}
       <div className="text-start"><button onClick={clearGame} className="bg-red-600 px-2 py-1 text-white rounded-lg">Reset Game</button></div>
     </div>
   );

@@ -8,6 +8,7 @@
       "moduleResolution": "node",
       "sourceMap": true,
       "outDir": "dist",
+      "jsx":"react-jsx",
       "baseUrl": ".",
       "paths": {
           "*": [
@@ -16,6 +17,6 @@
       }
   },
   "include": [
-      "**/*"
+      "**/*.tsx"
   ]
 }

@@ -39,21 +39,14 @@ const express_1 = __importDefault(require("express"));
 const HTTP = __importStar(require("http"));
 const socket_io_1 = require("socket.io");
 const cors_1 = __importDefault(require("cors"));
+const WinningLogic_1 = __importDefault(require("./WinningLogic"));
 const app = (0, express_1.default)();
 const PORT = 4000;
 // New imports
 const http = HTTP.createServer(app);
 app.use((0, cors_1.default)());
-// import { Server } from "socket.io";
-// const socketIO = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(http,{
-//   cors: {
-//     // origin: "http://192.168.0.116:5173",
-//     origin: "*",
-//   },
-// });
 const socketIO = new socket_io_1.Server(http, {
     cors: {
-        // origin: "http://192.168.0.116:5173",
         origin: "*",
     },
 });
@@ -72,7 +65,16 @@ socketIO.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function
                 p1 = item;
             }
         });
-        listOfActiveGames.push({ player1: p1, player2: null, gameId: Math.random().toString(36).slice(2, 7), gameMatrix: [[], [], []], turn: "" });
+        listOfActiveGames.push({
+            player1: p1,
+            player2: null,
+            gameId: Math.random().toString(36).slice(2, 7),
+            gameMatrix: [[], [], []],
+            turn: "",
+            winner: null,
+            player1WinCount: 0,
+            player2WinCount: 0
+        });
         socket.broadcast.emit("UserAddedToList", { listOfConnection, listOfActiveGames });
         console.log(listOfConnection);
     });
@@ -109,6 +111,11 @@ socketIO.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function
             if (item.gameId === gameId) {
                 item.gameMatrix = gameData.gameMatrix;
                 item.turn = gameData.turn;
+                item.winner = (0, WinningLogic_1.default)(gameData).winConnection;
+                item.player1WinCount = (0, WinningLogic_1.default)(gameData).player1WinCount;
+                item.player2WinCount = (0, WinningLogic_1.default)(gameData).player2WinCount;
+                if (item.winner)
+                    item.turn = "";
                 requestedGame = item;
             }
         });
@@ -123,7 +130,8 @@ socketIO.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function
         listOfActiveGames.forEach((item, index) => {
             if (item.gameId === gameId) {
                 item.gameMatrix = [[], [], []];
-                item.turn = gameData.turn;
+                item.turn = socket.id;
+                item.winner = null;
                 requestedGame = item;
             }
         });

@@ -2,6 +2,9 @@ import express from "express";
 import * as HTTP from "http";
 import {Server} from "socket.io";
 import cors from "cors";
+
+import determineWinner from "./WinningLogic";
+
 const app = express();
 const PORT = 4000;
 
@@ -20,6 +23,9 @@ interface ActiveGame{
   gameId:string,
   turn:string,
   gameMatrix:string[][],
+  winner:IndividualConnection,
+  player1WinCount:number,
+  player2WinCount:number
 
 }
 
@@ -27,17 +33,8 @@ interface ActiveGame{
 const http = HTTP.createServer(app);
 
 app.use(cors());
-// import { Server } from "socket.io";
-
-// const socketIO = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(http,{
-//   cors: {
-//     // origin: "http://192.168.0.116:5173",
-//     origin: "*",
-//   },
-// });
 const socketIO =new Server(http, {
   cors: {
-    // origin: "http://192.168.0.116:5173",
     origin: "*",
   },
 });
@@ -61,7 +58,16 @@ socketIO.on("connection", async (socket:any) => {
       }
     })
 
-    listOfActiveGames.push({player1:p1,player2:null,gameId:Math.random().toString(36).slice(2, 7),gameMatrix:[[],[],[]],turn:""});
+    listOfActiveGames.push({
+      player1:p1,
+      player2:null,
+      gameId:Math.random().toString(36).slice(2, 7),
+      gameMatrix:[[],[],[]],
+      turn:"",
+      winner:null,
+      player1WinCount:0,
+      player2WinCount:0
+    });
     socket.broadcast.emit("UserAddedToList",{listOfConnection,listOfActiveGames});
     console.log(listOfConnection);
   })
@@ -99,13 +105,20 @@ socketIO.on("connection", async (socket:any) => {
       if(item.gameId===gameId){
         item.gameMatrix=gameData.gameMatrix;
         item.turn=gameData.turn;
+        item.winner=determineWinner(gameData).winConnection;
+        item.player1WinCount=determineWinner(gameData).player1WinCount
+        item.player2WinCount=determineWinner(gameData).player2WinCount
+        if(item.winner) item.turn="";
         requestedGame=item;
       }
     })
+
+
     if(requestedGame){
       socketIO.to(requestedGame.player1.userId).emit("getGameData",requestedGame);
       socketIO.to(requestedGame.player2.userId).emit("getGameData",requestedGame);
     }
+
 
   })
 
@@ -115,7 +128,8 @@ socketIO.on("connection", async (socket:any) => {
     listOfActiveGames.forEach((item,index)=>{
       if(item.gameId===gameId){
         item.gameMatrix=[[],[],[]];
-        item.turn=gameData.turn;
+        item.turn=socket.id;
+        item.winner=null;
         requestedGame=item;
       }
     })
