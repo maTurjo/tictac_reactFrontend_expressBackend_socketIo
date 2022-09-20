@@ -15,6 +15,7 @@ const Gamebox = ({ socket }: props) => {
   const location = useLocation();
   const [gameData, setgameData] = useState<gameData>();
   const player2Name=useRef<HTMLInputElement>(null);
+  const [playerLeft,setPlayerLeft]=useState(false);
   const clearGame=()=>{
     socket.emit("clearGame",gameData);
   }
@@ -22,6 +23,13 @@ const Gamebox = ({ socket }: props) => {
     socket.on("getGameData", (updatedData: gameData) => {
       setgameData(updatedData);
     });
+
+    socket.on("userLeft",()=>{
+      let localCopy=Object.assign({},gameData);
+      localCopy.turn="";
+      setgameData(localCopy);
+      setPlayerLeft(true);
+    })
   }, [socket]);
   const joinGame=()=>{
     let player2_Name=player2Name.current?.value;
@@ -30,6 +38,11 @@ const Gamebox = ({ socket }: props) => {
     console.log(player2_Name);
     socket.emit("joinGame",{ gameId,player2Name:player2_Name});
     return;
+  }
+  if(playerLeft==true){
+    return <div>
+      <h1>Player Left The Game</h1>
+    </div>
   }
 
   if(location.state?.gameId && gameData?.player2.userName ==undefined ){

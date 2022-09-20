@@ -62,7 +62,6 @@ const Activeusers = ({socket}:Props) => {
         </thead>
         <tbody>
           {gameData?.listOfActiveGames.map((item, index) => {
-            // if(item.userName=="") return;
             return (
               <tr>
                 <td className="border">{item.player1?.userName}</td>
