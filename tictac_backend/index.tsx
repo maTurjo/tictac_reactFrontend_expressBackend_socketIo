@@ -96,7 +96,7 @@ socketIO.on("connection", async (socket: any) => {
       console.log(requestedGame);
       let playerOneisConnected=false;
       listOfConnection.map((item)=>{
-        if(item.userId==requestedGame.player1.userId) playerOneisConnected=true;
+        if(item.userId===requestedGame.player1.userId) playerOneisConnected=true;
       })
       if(playerOneisConnected){
         socketIO
@@ -123,16 +123,27 @@ socketIO.on("connection", async (socket: any) => {
     });
 
     if (requestedGame) {
-      socketIO
+
+      let playerOneisConnected=false;
+      let playerTwoisConnected=false;
+      listOfConnection.map((item)=>{
+        if(item.userId===requestedGame.player1.userId) playerOneisConnected=true;
+        if(item.userId===requestedGame.player2.userId) playerTwoisConnected=true;
+      })
+      if(playerOneisConnected && playerTwoisConnected){
+
+        socketIO
         .to(requestedGame.player1.userId)
         .emit("getGameData", requestedGame);
-      socketIO
+        socketIO
         .to(requestedGame.player2.userId)
         .emit("getGameData", requestedGame);
+      }
     }
   });
 
   socket.on("clearGame", (gameData: ActiveGame) => {
+    if(gameData === null ) return;
     const gameId = gameData.gameId;
     let requestedGame: ActiveGame;
     listOfActiveGames.forEach((item, index) => {
@@ -143,12 +154,24 @@ socketIO.on("connection", async (socket: any) => {
         requestedGame = item;
       }
     });
-    socketIO
-      .to(requestedGame.player1.userId)
-      .emit("getGameData", requestedGame);
-    socketIO
-      .to(requestedGame.player2.userId)
-      .emit("getGameData", requestedGame);
+
+    if (requestedGame) {
+
+      let playerOneisConnected=false;
+      let playerTwoisConnected=false;
+      listOfConnection.map((item)=>{
+        if(item.userId===requestedGame.player1.userId) playerOneisConnected=true;
+        if(item.userId===requestedGame.player2.userId) playerTwoisConnected=true;
+      })
+      if(playerOneisConnected && playerTwoisConnected){
+        socketIO
+        .to(requestedGame.player1.userId)
+        .emit("getGameData", requestedGame);
+        socketIO
+        .to(requestedGame.player2.userId)
+        .emit("getGameData", requestedGame);
+      }
+    }
   });
 
   // console.log(`⚡: ${socket.id} user just connected!`);
@@ -158,18 +181,33 @@ socketIO.on("connection", async (socket: any) => {
       if (item.userId !== socket.id) return true;
       else return false;
     });
+
+    listOfActiveGames.map((item,index)=>{
+      if(item.player1?.userId===socket.id){
+        socketIO.to(item.player2?.userId).emit('userLeft')
+      } else if (item.player2?.userId===socket.id){
+        socketIO.to(item.player1?.userId).emit('userLeft')
+      }
+    })
     listOfConnection = modifiedArray;
 
+
     const modifiedGameArray = listOfActiveGames.filter((item, index) => {
-      if (item.player1?.userId !== socket.id) return true;
-      else return false;
+      if (item.player1?.userId === socket.id) {
+        return false;
+      }
+      if( item.player2?.userId === socket.id){
+        console.log("Match for p2");
+        return false;
+        }
+      return true;
     });
+
     listOfActiveGames = modifiedGameArray;
     socket.broadcast.emit("UserAddedToList", {
       listOfConnection,
       listOfActiveGames,
     });
-    console.log(listOfConnection);
     console.log("🔥: A user disconnected");
   });
 });

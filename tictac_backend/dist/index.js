@@ -73,9 +73,12 @@ socketIO.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function
             turn: "",
             winner: null,
             player1WinCount: 0,
-            player2WinCount: 0
+            player2WinCount: 0,
         });
-        socket.broadcast.emit("UserAddedToList", { listOfConnection, listOfActiveGames });
+        socket.broadcast.emit("UserAddedToList", {
+            listOfConnection,
+            listOfActiveGames,
+        });
         console.log(listOfConnection);
     });
     socket.on("joinGame", (gameId) => {
@@ -88,7 +91,6 @@ socketIO.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function
                 console.log(gameId.player2Name);
                 console.log(item);
             }
-            ;
         });
         listOfActiveGames.forEach((item, index) => {
             if (item.gameId === gameId.gameId) {
@@ -100,7 +102,16 @@ socketIO.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function
             requestedGame.player2 = p2;
             requestedGame.turn = requestedGame.player2.userId;
             console.log(requestedGame);
-            socketIO.to(requestedGame.player1.userId).emit("getGameData", requestedGame);
+            let playerOneisConnected = false;
+            listOfConnection.map((item) => {
+                if (item.userId === requestedGame.player1.userId)
+                    playerOneisConnected = true;
+            });
+            if (playerOneisConnected) {
+                socketIO
+                    .to(requestedGame.player1.userId)
+                    .emit("getGameData", requestedGame);
+            }
             socket.emit("getGameData", requestedGame);
         }
     });
@@ -120,11 +131,27 @@ socketIO.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function
             }
         });
         if (requestedGame) {
-            socketIO.to(requestedGame.player1.userId).emit("getGameData", requestedGame);
-            socketIO.to(requestedGame.player2.userId).emit("getGameData", requestedGame);
+            let playerOneisConnected = false;
+            let playerTwoisConnected = false;
+            listOfConnection.map((item) => {
+                if (item.userId === requestedGame.player1.userId)
+                    playerOneisConnected = true;
+                if (item.userId === requestedGame.player2.userId)
+                    playerTwoisConnected = true;
+            });
+            if (playerOneisConnected && playerTwoisConnected) {
+                socketIO
+                    .to(requestedGame.player1.userId)
+                    .emit("getGameData", requestedGame);
+                socketIO
+                    .to(requestedGame.player2.userId)
+                    .emit("getGameData", requestedGame);
+            }
         }
     });
     socket.on("clearGame", (gameData) => {
+        if (gameData === null)
+            return;
         const gameId = gameData.gameId;
         let requestedGame;
         listOfActiveGames.forEach((item, index) => {
@@ -135,8 +162,24 @@ socketIO.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function
                 requestedGame = item;
             }
         });
-        socketIO.to(requestedGame.player1.userId).emit("getGameData", requestedGame);
-        socketIO.to(requestedGame.player2.userId).emit("getGameData", requestedGame);
+        if (requestedGame) {
+            let playerOneisConnected = false;
+            let playerTwoisConnected = false;
+            listOfConnection.map((item) => {
+                if (item.userId === requestedGame.player1.userId)
+                    playerOneisConnected = true;
+                if (item.userId === requestedGame.player2.userId)
+                    playerTwoisConnected = true;
+            });
+            if (playerOneisConnected && playerTwoisConnected) {
+                socketIO
+                    .to(requestedGame.player1.userId)
+                    .emit("getGameData", requestedGame);
+                socketIO
+                    .to(requestedGame.player2.userId)
+                    .emit("getGameData", requestedGame);
+            }
+        }
     });
     // console.log(`⚡: ${socket.id} user just connected!`);
     socket.on("disconnect", () => {
@@ -146,17 +189,36 @@ socketIO.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function
             else
                 return false;
         });
+        listOfActiveGames.map((item, index) => {
+            var _a, _b, _c, _d;
+            if (((_a = item.player1) === null || _a === void 0 ? void 0 : _a.userId) === socket.id) {
+                socketIO.to((_b = item.player2) === null || _b === void 0 ? void 0 : _b.userId).emit('userLeft');
+            }
+            else if (((_c = item.player2) === null || _c === void 0 ? void 0 : _c.userId) === socket.id) {
+                socketIO.to((_d = item.player1) === null || _d === void 0 ? void 0 : _d.userId).emit('userLeft');
+            }
+        });
         listOfConnection = modifiedArray;
         const modifiedGameArray = listOfActiveGames.filter((item, index) => {
-            var _a;
-            if (((_a = item.player1) === null || _a === void 0 ? void 0 : _a.userId) !== socket.id)
-                return true;
-            else
+            var _a, _b;
+            if (((_a = item.player1) === null || _a === void 0 ? void 0 : _a.userId) === socket.id) {
                 return false;
+            }
+            if (((_b = item.player2) === null || _b === void 0 ? void 0 : _b.userId) === socket.id) {
+                console.log("Match for p2");
+                return false;
+            }
+            return true;
         });
+        console.log(modifiedGameArray);
+        console.log(listOfActiveGames);
         listOfActiveGames = modifiedGameArray;
-        socket.broadcast.emit("UserAddedToList", { listOfConnection, listOfActiveGames });
+        socket.broadcast.emit("UserAddedToList", {
+            listOfConnection,
+            listOfActiveGames,
+        });
         console.log(listOfConnection);
+        console.log(listOfActiveGames);
         console.log("🔥: A user disconnected");
     });
 }));
@@ -164,7 +226,7 @@ app.get("/api/getActiveUsers", (req, res) => {
     socketIO.emit("UserAddedToList", { listOfConnection, listOfActiveGames });
     res.json({
         listOfActiveGames,
-        listOfConnection
+        listOfConnection,
     });
 });
 app.get("/api", (req, res) => {
